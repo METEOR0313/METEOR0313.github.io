@@ -8,7 +8,7 @@ favicon = "/favicon.svg"
     customText = "Powered by Hugo & Theme Stack"
 
 [sidebar]
-    avatar   = "https://github.com/METEOR-ECHO.png"
+    avatar   = "/avatar.png"
 
 [article]
     math     = false

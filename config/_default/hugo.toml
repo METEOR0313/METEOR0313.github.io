@@ -1,4 +1,4 @@
-baseURL                = "https://meteor.github.io/"
+baseURL                = "https://meteor0313.github.io/"
 locale                  = "zh-cn"
 title                   = "METEOR"
 theme                   = "hugo-theme-stack"

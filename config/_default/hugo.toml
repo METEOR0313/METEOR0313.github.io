@@ -1,4 +1,4 @@
-baseURL                = "https://METEOR-ECHO.github.io/"
+baseURL                = "https://meteor.github.io/"
 locale                  = "zh-cn"
 title                   = "METEOR"
 theme                   = "hugo-theme-stack"

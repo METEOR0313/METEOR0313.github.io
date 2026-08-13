@@ -8,7 +8,7 @@ favicon = "/favicon.svg"
     customText = "Powered by Hugo & Theme Stack"
 
 [sidebar]
-    avatar   = "/avatar.png"
+    avatar   = "/images/avatar.png"
 
 [article]
     math     = false

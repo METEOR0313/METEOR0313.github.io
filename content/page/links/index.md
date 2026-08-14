@@ -3,10 +3,10 @@ title: "Friends"
 layout: "links"
 readingTime: false
 links:
-  - title: Sukkk's Blog
-    description: 记录技术笔记和成长历程
+  - title: Sukkk
+    description: 晓看天色暮看云
     website: https://sukkk-zcy.github.io/
-    image: https://sukkk-zcy.github.io/img/avatar.jpg
+    image: https://sukkk-zcy.github.io/favicon.ico
   - title: Liu Houliang
     description: Hugo Stack 主题作者
     website: https://liuhouliang.com/

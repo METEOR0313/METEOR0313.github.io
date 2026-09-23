@@ -11,7 +11,7 @@
         unsafe = true
 
 [tableOfContents]
-    endLevel   = 4
+    endLevel   = 3
     ordered    = true
     startLevel = 2
 

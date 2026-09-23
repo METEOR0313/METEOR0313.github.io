@@ -99,8 +99,7 @@ $$\text{看过广告的用户}\cap\text{购买用户}$$
 
 双方想联合训练信用风险模型，但用户并不完全重合。第一步要找出双方都有记录的用户：
 
-$$\{\text{张三，李四，王五}\}\cap\{\text{李四，王五，赵六}\}
-=\{\text{李四，王五}\}$$
+$$\{\text{张三，李四，王五}\}\cap\{\text{李四，王五，赵六}\} =\{\text{李四，王五}\}$$
 
 这一步叫作**数据对齐、样本对齐或实体对齐**。
 
@@ -258,8 +257,7 @@ $$Y_{\alpha\beta}=\{(H(y_j)^\beta)^\alpha\}$$
 
 关键公式是：
 
-$$(H(x)^\alpha)^\beta=H(x)^{\alpha\beta}
-=(H(x)^\beta)^\alpha$$
+$$(H(x)^\alpha)^\beta=H(x)^{\alpha\beta} =(H(x)^\beta)^\alpha$$
 
 如果 $x=y$，双方最终会得到相同的双重指数结果，因此可以进行匹配。
 
@@ -333,9 +331,7 @@ $$s'=(m')^d\pmod N$$
 
 代入 $m'$：
 
-$$s'=(m\cdot r_i^e)^d
-=m^d\cdot r_i^{ed}
-\equiv m^d\cdot r_i\pmod N$$
+$$s'=(m\cdot r_i^e)^d =m^d\cdot r_i^{ed} \equiv m^d\cdot r_i\pmod N$$
 
 这个动作叫**盲签名**：Bob 完成了私钥运算，却不知道自己处理的原始消息。
 
@@ -433,14 +429,13 @@ $$m\xrightarrow{\operatorname{Enc}}c$$
 
 例如一种支持加法的同态加密满足：
 
-$$\operatorname{Enc}(a)\oplus\operatorname{Enc}(b)
-=\operatorname{Enc}(a+b)$$
+$$\operatorname{Enc}(a)\oplus\operatorname{Enc}(b) =\operatorname{Enc}(a+b)$$
 
 这里的 $\oplus$ 表示某种“密文运算”，不一定是普通整数加号。计算方不知道 $a$ 和 $b$，却能得到 $a+b$ 的密文。持有私钥的人解密后得到：
 
 $$\operatorname{Dec}(\operatorname{Enc}(a+b))=a+b$$
 
-#### 一个容易理解的例子
+**一个容易理解的例子**
 
 医院甲保存患者人数 $120$，医院乙保存患者人数 $80$。双方不想公开各自人数，但需要得到总数。
 
@@ -460,7 +455,7 @@ $$\operatorname{Enc}(200)$$
 
 ### FHE 和 PHE 有什么区别
 
-#### 部分同态加密 PHE
+**部分同态加密 PHE**
 
 PHE 是 **Partially Homomorphic Encryption**。它只支持一种运算，或支持范围有限的运算。
 
@@ -479,7 +474,7 @@ $$\operatorname{Enc}(ka)$$
 
 但它不能随意把加法和乘法无限组合。
 
-#### 全同态加密 FHE
+**全同态加密 FHE**
 
 FHE 是 **Fully Homomorphic Encryption**。它支持足够丰富的密文加法和密文乘法，因此原则上可以组合出任意有限电路的计算。
 
@@ -515,7 +510,7 @@ $$X\cap Y$$
 
 这一方案的直觉是：**Bob 把自己的元素加密，Alice 不知道这些元素，却可以在密文上检测它们是否等于自己集合中的某个元素。**
 
-#### 第一步：Bob 加密自己的集合
+**第一步：Bob 加密自己的集合**
 
 Bob 生成 FHE 密钥：
 
@@ -527,13 +522,11 @@ $$c_i=\operatorname{Enc}_{pk}(y_i)$$
 
 Bob 把 $c_i$ 发给 Alice，自己保留私钥。Alice 只看到密文，不知道 $y_i$。
 
-#### 第二步：Alice 在密文上构造“判零表达式”
+**第二步：Alice 在密文上构造“判零表达式”**
 
 Alice 针对每个 $c_i$ 计算：
 
-$$d_i=\operatorname{Eval}\left(
-r_i\prod_{x\in X}(y_i-x)
-\right)$$
+$$d_i=\operatorname{Eval}\left( r_i\prod_{x\in X}(y_i-x) \right)$$
 
 严格来说，Alice 实际操作的是 $c_i=\operatorname{Enc}(y_i)$，上式写的是密文计算所对应的**明文逻辑**。$r_i$ 是 Alice 选择的非零随机数。
 
@@ -551,11 +544,9 @@ $$\prod_{x\in X}(y_i-x)=0$$
 
 因此：
 
-$$y_i\in X
-\iff
-\prod_{x\in X}(y_i-x)=0$$
+$$y_i\in X \iff \prod_{x\in X}(y_i-x)=0$$
 
-#### 第三步：Bob 解密并判断
+**第三步：Bob 解密并判断**
 
 Alice 把 $d_i$ 返回给 Bob。Bob 使用私钥解密：
 
@@ -567,7 +558,7 @@ $$z_i=0$$
 
 就说明 $y_i\in X$；否则说明 $y_i\notin X$。Bob 对自己的每个元素都做判断，便得到交集。
 
-#### 用数字完整走一遍
+**用数字完整走一遍**
 
 假设：
 
@@ -577,21 +568,13 @@ $$X=\{2,5,8\},\qquad Y=\{3,5,9\}$$
 
 对于 $y=5$：
 
-$$
-(5-2)(5-5)(5-8)
-=3\times0\times(-3)
-=0
-$$
+$$(5-2)(5-5)(5-8) =3\times0\times(-3) =0$$
 
 无论非零随机数 $r$ 是多少，$r\times0$ 仍然是 0，所以 Bob 解密后知道 5 属于交集。
 
 对于 $y=3$：
 
-$$
-(3-2)(3-5)(3-8)
-=1\times(-2)\times(-5)
-=10
-$$
+$$(3-2)(3-5)(3-8) =1\times(-2)\times(-5) =10$$
 
 乘积不是 0，因此 Bob 知道 3 不在 Alice 的集合中。
 
@@ -599,7 +582,7 @@ $$
 
 $$X\cap Y=\{5\}$$
 
-#### 为什么要乘随机数 r_i
+**为什么要乘随机数 r_i**
 
 成员对应的结果必须保持为 0：
 
@@ -621,7 +604,7 @@ $$r_i\times z_i$$
 
 > Alice 把集合元素变成多项式的根，加密多项式系数；Bob 用自己的元素在密文上求值，Alice 解密后识别交集。
 
-#### 第一步：把集合写成多项式
+**第一步：把集合写成多项式**
 
 Alice 根据集合 $X$ 构造：
 
@@ -645,7 +628,7 @@ $$P(2)=P(5)=P(8)=0$$
 
 $$y\in X\iff P(y)=0$$
 
-#### 第二步：展开并加密多项式系数
+**第二步：展开并加密多项式系数**
 
 把多项式展开：
 
@@ -653,28 +636,21 @@ $$P(t)=a_nt^n+a_{n-1}t^{n-1}+\cdots+a_1t+a_0$$
 
 Alice 不发送明文系数，否则 Bob 可能分析甚至还原多项式的根。Alice 加密每个系数：
 
-$$\operatorname{Enc}(a_0),\operatorname{Enc}(a_1),\ldots,
-\operatorname{Enc}(a_n)$$
+$$\operatorname{Enc}(a_0),\operatorname{Enc}(a_1),\ldots, \operatorname{Enc}(a_n)$$
 
 然后把这些密文发给 Bob。
 
-#### 第三步：Bob 在密文上计算多项式值
+**第三步：Bob 在密文上计算多项式值**
 
 Bob 知道自己的明文 $y_i$，因此知道 $y_i^j$。利用加法同态和“密文乘明文常数”，他可以计算：
 
-$$
-\operatorname{Enc}(P(y_i))
-=
-\operatorname{Enc}\left(
-\sum_{j=0}^{n}a_jy_i^j
-\right)
-$$
+$$\operatorname{Enc}(P(y_i)) = \operatorname{Enc}\left( \sum_{j=0}^{n}a_jy_i^j \right)$$
 
 这里有个容易产生的疑问：**计算多项式不是需要乘法吗，为什么 PHE 也能做？**
 
 原因是 Bob 并没有把两个加密系数相乘。$a_j$ 是加密的，$y_i^j$ 是 Bob 已知的明文常数。很多加法同态方案可以把密文按明文常数缩放，再把结果相加，所以不需要 FHE 那样的任意密文乘法。
 
-#### 第四步：随机化并带回元素
+**第四步：随机化并带回元素**
 
 Bob 选择非零随机数 $r_i$，计算：
 
@@ -684,7 +660,7 @@ $$\operatorname{Enc}(r_iP(y_i)+y_i)$$
 
 为什么还要加上 $y_i$？分两种情况看。
 
-#### 情况一：Bob 的元素属于交集
+**情况一：Bob 的元素属于交集**
 
 如果 $y_i\in X$，那么：
 
@@ -696,7 +672,7 @@ $$r_iP(y_i)+y_i=0+y_i=y_i$$
 
 Alice 解密后直接得到这个共同元素，并能确认它属于自己的集合。
 
-#### 情况二：Bob 的元素不属于交集
+**情况二：Bob 的元素不属于交集**
 
 如果 $y_i\notin X$，那么 $P(y_i)\neq0$，结果为：
 
@@ -718,7 +694,7 @@ $$P(t)=(t-2)(t-5)=t^2-7t+10$$
 
 $$Y=\{3,5\}$$
 
-#### Bob 处理元素 5
+**Bob 处理元素 5**
 
 $$P(5)=25-35+10=0$$
 
@@ -728,7 +704,7 @@ $$rP(5)+5=13\times0+5=5$$
 
 Alice 解密得到 5。因为 $5\in X$，所以确认它是共同元素。
 
-#### Bob 处理元素 3
+**Bob 处理元素 3**
 
 $$P(3)=9-21+10=-2$$
 
@@ -762,13 +738,7 @@ $$P(y_i)=\prod_{x\in X}(y_i-x)$$
 
 所以它们都依靠：
 
-$$
-y_i\in X
-\iff
-\prod_{x\in X}(y_i-x)=0
-\iff
-P(y_i)=0
-$$
+$$y_i\in X \iff \prod_{x\in X}(y_i-x)=0 \iff P(y_i)=0$$
 
 区别在于怎样安全完成这次判零计算。
 
@@ -784,41 +754,25 @@ $$
 
 ### 把两页记成两条流程
 
-#### 第 13 页
+**第 13 页**
 
-$$
-\text{Bob 加密 }y_i
-\rightarrow
-\text{Alice 在密文上计算乘积}
-\rightarrow
-\text{Bob 解密}
-\rightarrow
-0\text{ 表示属于交集}
-$$
+$$\text{Bob 加密 }y_i \rightarrow \text{Alice 在密文上计算乘积} \rightarrow \text{Bob 解密} \rightarrow 0\text{ 表示属于交集}$$
 
-#### 第 14 页
+**第 14 页**
 
-$$
-\text{Alice 用集合构造多项式}
-\rightarrow
-\text{加密多项式系数}
-\rightarrow
-\text{Bob 在密文上代入 }y_i
-\rightarrow
-\text{Alice 解密并识别交集}
-$$
+$$\text{Alice 用集合构造多项式} \rightarrow \text{加密多项式系数} \rightarrow \text{Bob 在密文上代入 }y_i \rightarrow \text{Alice 解密并识别交集}$$
 
 ### 常见疑问
 
-#### 为什么不直接把多项式发给 Bob
+**为什么不直接把多项式发给 Bob**
 
 因为多项式的根就是 Alice 的集合元素。直接公开完整多项式，可能让 Bob 通过求根等方法恢复 Alice 的集合。加密系数正是为了让 Bob 能求值，却看不到系数和根。
 
-#### 为什么“结果为 0”能判断相等
+**为什么“结果为 0”能判断相等**
 
 因为构造中包含每一个差值 $(y_i-x)$。只要 $y_i$ 等于某个 $x$，对应差值就是 0，整个乘积也必然为 0。
 
-#### 随机数会不会把交集结果弄错
+**随机数会不会把交集结果弄错**
 
 不会破坏成员对应的 0，因为：
 
@@ -826,7 +780,7 @@ $$r\times0=0$$
 
 它主要改变非零结果，用来减少非交集信息的泄露。正式协议还会限定随机数的取值范围，并在选定代数结构中证明正确性和安全性。
 
-#### FHE 越强，为什么不全部使用 FHE
+**FHE 越强，为什么不全部使用 FHE**
 
 密码方案不仅要“能算”，还要考虑时间、内存、带宽和实现复杂度。如果任务只需要加法同态和明文常数乘法，PHE 已经够用，使用更重的 FHE 未必划算。
 

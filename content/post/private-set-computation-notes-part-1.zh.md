@@ -4,12 +4,12 @@ date: 2026-09-19
 lastmod: 2026-09-23
 draft: false
 math: true
-tags: ["隐私计算", "PSI", "联邦学习", "Hash", "Diffie-Hellman", "RSA", "盲签名", "同态加密", "FHE", "PHE", "多项式"]
+tags: ["隐私计算", "PSI", "联邦学习", "Hash", "Diffie-Hellman", "RSA", "盲签名", "同态加密", "FHE", "PHE", "多项式", "OT", "OT Extension", "IKNP"]
 categories: ["隐私计算"]
-description: "持续更新的隐私集合计算 PPT 学习笔记：从 PSO、PSI、PSU 和数据对齐开始，逐步理解 Hash、DH、RSA、同态加密等 PSI 协议。"
+description: "持续更新的隐私集合计算 PPT 学习笔记：从 PSO、PSI、PSU 和数据对齐开始，逐步理解 Hash、DH、RSA、同态加密、OT 与 IKNP OT 扩展。"
 ---
 
-这是一篇持续更新的复习笔记，用来整理《隐私集合计算中的关键技术》PPT 的学习内容。目前已经整理到 **第 14 页**。重点不是记住一堆缩写，而是理解各种 PSI 协议为什么出现、怎样运行，以及它们之间有什么联系。
+这是一篇持续更新的复习笔记，用来整理《隐私集合计算中的关键技术》PPT 的学习内容。目前已经整理到 **第 21 页**。重点不是记住一堆缩写，而是理解各种 PSI 协议为什么出现、怎样运行，以及它们之间有什么联系。
 
 以后学习这份 PPT 的新内容都会继续追加在本文末尾，并注明页码范围，已经讲过的内容不再重复。
 
@@ -798,4 +798,318 @@ $$r\times0=0$$
 
 如果能顺畅回答这些问题，第 13～14 页的主线就已经掌握了。
 
-> **当前整理进度：PPT 第 14 页。下次从第 15 页继续追加。**
+## PPT 第 15 页：先弄懂一次 1-out-of-2 OT
+
+第 15～21 页属于同一条知识链：
+
+$$\text{第 15 页：用 DH 完成一次 OT}\longrightarrow\text{第 16～21 页：用少量 Base OT 扩展出大量 OT}$$
+
+这些页面是在准备后续 OT-based PSI 所需的基础工具，**还没有把 Alice、Bob 的集合元素放进去，也还没有计算交集**。
+
+### 什么是 1-out-of-2 OT
+
+OT 是 Oblivious Transfer，中文通常译为“不经意传输”。在 1-out-of-2 OT 中：
+
+- Alice 是 Sender，持有两条消息 $m_0,m_1$；
+- Bob 是 Receiver，持有选择位 $b\in\{0,1\}$；
+- Bob 只得到 $m_b$，不能同时得到另一条消息；
+- Alice 不知道 Bob 选择了 0 还是 1。
+
+因此，“1-out-of-2”就是“从两条消息中秘密选择一条”。这里的 0 和 1 是两个分支的编号。
+
+> **用到的知识：** DH 群上的指数运算、对称加密或密钥派生。
+>
+> **暂时不用：** RSA、盲签名、FHE、PHE、多项式判零，也没有开始求 PSI 交集。
+
+### 第 15 页的完整通信顺序
+
+双方约定一个循环群、生成元 $g$ 和相应安全参数。以下指数都在协议规定的群中计算。
+
+**第一步：Alice 随机选择秘密指数。**
+
+Alice **随机选择**秘密数 $\alpha$，计算：
+
+$$A=g^\alpha$$
+
+然后把 $A$ 发给 Bob。Alice 不发送 $\alpha$。
+
+**第二步：Bob确定选择位并随机选择秘密指数。**
+
+Bob 决定选择位 $b\in\{0,1\}$。$b$ 是 Bob 想选哪条消息的输入，**不一定是随机数**；在某些随机 OT 场景中它才会随机产生。
+
+Bob 再**随机选择**秘密数 $\beta$，计算：
+
+$$B=A^b g^\beta$$
+
+然后把 $B$ 发给 Alice。Bob 不发送 $b$ 和 $\beta$。
+
+**第三步：Alice在本地生成两把候选密钥。**
+
+$$K_0=B^\alpha$$
+
+$$K_1=(B/A)^\alpha$$
+
+实际系统通常还会把这些群元素送入 KDF 或 Hash，得到固定长度的对称密钥。Alice 使用两把密钥分别保护消息：
+
+$$C_0=\operatorname{Enc}_{K_0}(m_0),\qquad C_1=\operatorname{Enc}_{K_1}(m_1)$$
+
+Alice 把 $C_0,C_1$ 都发给 Bob，但**不会发送 $K_0,K_1$**。
+
+**第四步：Bob自己计算解密密钥。**
+
+Bob 在本地计算：
+
+$$K_B=A^\beta$$
+
+这把密钥不是 Alice 通过网络发来的。协议利用 DH 的交换性质，让它自动等于 Alice 两把密钥中的一把。
+
+### 为什么 Bob 的密钥恰好匹配一把
+
+如果 Bob 选择 $b=0$：
+
+$$B=A^0g^\beta=g^\beta$$
+
+于是：
+
+$$K_0=B^\alpha=g^{\alpha\beta}=A^\beta=K_B$$
+
+所以 Bob 能用 $K_B$ 解开 $C_0$，得到 $m_0$。
+
+如果 Bob 选择 $b=1$：
+
+$$B=Ag^\beta$$
+
+因此：
+
+$$K_1=(B/A)^\alpha=g^{\alpha\beta}=A^\beta=K_B$$
+
+所以 Bob 能解开 $C_1$，得到 $m_1$。
+
+这不是双方把密钥发出来进行比较，而是：
+
+$$b=0\Rightarrow K_B=K_0,\qquad b=1\Rightarrow K_B=K_1$$
+
+Bob 自己算出的密钥天然落在所选分支上。
+
+### 这种公式是固定规则吗
+
+OT 的**功能目标**是固定的：Sender 有两条消息，Receiver 秘密选择其中一条。但 $B=A^bg^\beta$ 并不是所有 OT 必须采用的公式，它是这个 DH-based OT 为实现功能目标而设计的数学结构。
+
+可以把设计思路反过来看：协议希望实现“$b=0$ 时匹配 $K_0$，$b=1$ 时匹配 $K_1$”，因此构造了 $B,K_0,K_1$ 的上述关系。
+
+> **容易混淆的提醒：** 这里使用了 DH 的共享值性质，但没有使用 ElGamal 的完整加密格式；也没有通过“比较两把密钥”决定结果。
+
+## PPT 第 16～21 页：IKNP OT 扩展
+
+如果 PSI 需要上百万次 OT，而每次都运行第 15 页的公钥运算，成本会很高。OT Extension 的作用是：
+
+$$\boxed{\text{少量昂贵的 Base OT}+\text{大量 XOR、Hash 等便宜运算}\Rightarrow\text{大量 OT}}$$
+
+这里学习的是 IKNP 的核心构造。它不改变 OT 的功能，只降低批量生成 OT 的成本。
+
+### 先看最终想得到什么
+
+设最终要扩展出 $n$ 个 OT。对于每个 $i$：
+
+- Alice 最终拥有两个候选密钥 $(K_i^0,K_i^1)$；
+- Bob 拥有选择位 $r_i\in\{0,1\}$；
+- Bob 只拥有 $K_i^{r_i}$；
+- Alice 不知道每个 $r_i$。
+
+安全参数记作 $\lambda$，一般远小于 $n$。PPT 的小矩阵只是演示，实际 $\lambda$ 会按安全要求选取。
+
+### 五个符号先分清
+
+| 符号 | 谁持有 | 含义 |
+| --- | --- | --- |
+| $r=(r_1,\ldots,r_n)$ | Bob | 最终 $n$ 个 OT 的选择向量 |
+| $s=(s_1,\ldots,s_\lambda)$ | Alice | Base OT 阶段的选择向量 |
+| $T,T'$ | Bob | 两个 $n\times\lambda$ 比特矩阵 |
+| $Q$ | Alice | 做完 $\lambda$ 次 Base OT 后拼成的矩阵 |
+| $t_i,q_i$ | Bob / Alice | $T,Q$ 的第 $i$ 行 |
+
+$r_i$ 和 $s_j$ 不是同一个选择：$r_i$ 控制第 $i$ 个**最终 OT**，$s_j$ 控制第 $j$ 个 **Base OT**。
+
+> **用到的知识：** 第 15 页的 1-out-of-2 OT、比特 XOR、矩阵的行列、Hash。
+>
+> **暂时不用：** 集合元素、交集判断、同态加密和 RSA。此处生成的是后续协议要用的密钥材料。
+
+### 第一步：Bob把最终选择编码成矩阵 R
+
+Bob 有选择向量：
+
+$$r=(r_1,r_2,\ldots,r_n)^T$$
+
+每个 $r_i$ 表示第 $i$ 个最终 OT 选择 0 分支还是 1 分支。它是协议输入；如果 PPT 的特定构造要求随机 OT，可以**随机选择**，但一般不能把所有选择位都默认说成随机数。
+
+Bob 把每个 $r_i$ 横向重复 $\lambda$ 次，得到 $n\times\lambda$ 矩阵 $R$。若 $r_i=0$，第 $i$ 行全为 0；若 $r_i=1$，第 $i$ 行全为 1。
+
+### 第二步：Bob随机生成 T，再构造 T'
+
+Bob **随机生成** $n\times\lambda$ 比特矩阵 $T$，然后定义：
+
+$$T'=T\oplus R$$
+
+$\oplus$ 表示逐位 XOR：
+
+| $x$ | $y$ | $x\oplus y$ |
+| ---: | ---: | ---: |
+| 0 | 0 | 0 |
+| 0 | 1 | 1 |
+| 1 | 0 | 1 |
+| 1 | 1 | 0 |
+
+因此：
+
+$$x\oplus0=x,\qquad x\oplus1=\overline{x}$$
+
+对第 $i$ 行有：
+
+$$r_i=0\Rightarrow t'_i=t_i$$
+
+$$r_i=1\Rightarrow t'_i\text{ 是 }t_i\text{ 的逐位翻转}$$
+
+“逐位相反”就是相同位置一个为 0、另一个为 1，所以两行 XOR 后得到全 1。
+
+### 第三步：角色暂时反转，按列做 Base OT
+
+最终大量 OT 中 Alice 是 Sender、Bob 是 Receiver；但在 $\lambda$ 次 Base OT 中角色反过来：
+
+- Bob 是 Base OT 的 Sender；
+- Alice 是 Base OT 的 Receiver。
+
+Bob 把 $T$ 的第 $j$ 列 $T^{(j)}$ 和 $T'$ 的第 $j$ 列 $T'^{(j)}$ 作为两条消息。Alice **随机选择**长度为 $\lambda$ 的秘密比特串：
+
+$$s=(s_1,s_2,\ldots,s_\lambda)$$
+
+在第 $j$ 次 Base OT 中：
+
+$$s_j=0\Rightarrow\text{Alice得到 }T^{(j)}$$
+
+$$s_j=1\Rightarrow\text{Alice得到 }T'^{(j)}$$
+
+这不是从矩阵推导出的自然规律，而是 1-out-of-2 OT 接口中事先约定的分支编号：选择位 0 取第一条，选择位 1 取第二条。
+
+因为矩阵只有 $\lambda$ 列，所以这里只运行 $\lambda$ 次昂贵的 Base OT，而不是 $n$ 次。
+
+### 第四步：Alice把收到的列拼成 Q
+
+Alice 每次 Base OT 得到一列，把 $\lambda$ 列按原顺序拼起来，形成 $n\times\lambda$ 矩阵 $Q$。
+
+这一步的视角切换非常关键：
+
+> **前半段按列做 $\lambda$ 次 Base OT，后半段按行解释成 $n$ 个扩展 OT。**
+
+$Q$ 不是交集，也不是集合匹配结果；它是 Alice 得到的相关随机比特矩阵。
+
+### 第五步：推导 q_i 与 t_i 的关系
+
+观察第 $i$ 行、第 $j$ 列。Alice 根据 $s_j$ 选 $T$ 或 $T'$ 的第 $j$ 列，而：
+
+$$t'_{i,j}=t_{i,j}\oplus r_i$$
+
+因此：
+
+$$q_{i,j}=t_{i,j}\oplus(r_i\land s_j)$$
+
+$\land$ 表示 AND。把一整行合起来：
+
+$$q_i=t_i\oplus(r_i\land s)$$
+
+于是得到：
+
+$$q_i=\begin{cases}t_i,&r_i=0\\t_i\oplus s,&r_i=1\end{cases}$$
+
+这个关系不是所有 OT 天生遵守的定律，而是采用 $T'=T\oplus R$ 和按 $s_j$ 选列之后**推导出的必然结论**。
+
+### 第六步：为什么 Alice 还要形成两个候选值
+
+仅有 $q_i$ 与 $t_i$ 的相关性，还没有明确形成标准 OT 的两个分支。Alice 对每一行定义：
+
+$$\text{第 0 个候选}=q_i,\qquad\text{第 1 个候选}=q_i\oplus s$$
+
+Bob 始终持有 $t_i$：
+
+$$r_i=0\Rightarrow t_i=q_i$$
+
+$$r_i=1\Rightarrow t_i=q_i\oplus s$$
+
+所以 Bob 的 $t_i$ 恰好等于 Alice 两个候选值中的一个。这时第 $i$ 个扩展 OT 的“二选一”结构才真正形成。
+
+### 第七步：Hash 成为可用的密钥
+
+Alice 计算：
+
+$$K_i^0=H(q_i),\qquad K_i^1=H(q_i\oplus s)$$
+
+Bob 计算：
+
+$$K_i=H(t_i)$$
+
+于是：
+
+$$r_i=0\Rightarrow K_i=K_i^0,\qquad r_i=1\Rightarrow K_i=K_i^1$$
+
+Hash 在这里用于把相关比特串变成适合后续使用的密钥材料。它不是第 10 页那种“直接对集合元素做 Hash 再求交”的 Hash PSI，也没有用 Hash 直接判断交集。
+
+## 用一个小矩阵走完 OT 扩展
+
+下面的数字仅用于教学演示，安全参数很小，不能用于真实系统。
+
+设最终需要 $n=3$ 个 OT，演示用 $\lambda=2$。Bob 的选择向量取：
+
+$$r=(0,1,0)^T$$
+
+这里 $r$ 表示示例中希望选择的分支，不把它说成随机数。扩展后：
+
+$$R=\begin{pmatrix}0&0\\1&1\\0&0\end{pmatrix}$$
+
+Bob **随机选择**示例矩阵：
+
+$$T=\begin{pmatrix}1&0\\0&1\\1&1\end{pmatrix}$$
+
+计算：
+
+$$T'=T\oplus R=\begin{pmatrix}1&0\\1&0\\1&1\end{pmatrix}$$
+
+Alice **随机选择** Base OT 选择向量：
+
+$$s=(1,0)$$
+
+第 1 次 Base OT 中 $s_1=1$，Alice 取得 $T'$ 的第 1 列；第 2 次中 $s_2=0$，取得 $T$ 的第 2 列。拼接得到：
+
+$$Q=\begin{pmatrix}1&0\\1&1\\1&1\end{pmatrix}$$
+
+逐行检查：
+
+| $i$ | $r_i$ | Bob 的 $t_i$ | Alice 的 $q_i$ | 关系 |
+| ---: | ---: | --- | --- | --- |
+| 1 | 0 | 10 | 10 | $q_1=t_1$ |
+| 2 | 1 | 01 | 11 | $q_2=t_2\oplus s$ |
+| 3 | 0 | 11 | 11 | $q_3=t_3$ |
+
+因此 Alice 对每一行形成 $(q_i,q_i\oplus s)$，Bob 根据 $r_i$ 恰好只持有其中一个对应值。
+
+## OT 扩展与 PSI 的关系
+
+学到这里最容易产生的误解是：“Alice 已经有两个值，Bob 也选到了一个，是不是交集已经算完？”答案是否定的。
+
+第 15 页完成的是一次安全二选一；第 16～21 页批量生成二选一所需的相关密钥。此时的 $T,T',Q,r,s$ 都不是集合元素，也不是交集结果。
+
+真正的 OT-based PSI 还要继续规定：
+
+- 怎样把集合元素编码到 OT 的输入或选择中；
+- 怎样利用大量 OT 安全比较元素；
+- 哪一方获得具体交集或交集大小。
+
+不用 OT Extension 也可以构造 OT-based PSI：直接重复运行很多次第 15 页的 Base OT 即可，功能上能完成，但公钥运算次数太多，效率很差。
+
+可以用下面的关系记忆：
+
+$$\text{一次 Base OT 能安全二选一，但不等于已经求出交集}$$
+
+$$\text{OT Extension 提高批量 OT 的效率，但不改变 OT 的功能}$$
+
+$$\text{OT-based PSI 才会把这些 OT 用来处理集合并最终求交}$$
+
+> **当前整理进度：PPT 第 21 页。下次从第 22 页继续追加。**
